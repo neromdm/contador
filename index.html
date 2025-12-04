@@ -2,11 +2,23 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Contador global</title>
+  <title>Contador global con historial</title>
   <style>
-    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+    body { font-family: sans-serif; text-align: center; margin-top: 40px; }
     #valor { font-size: 3rem; margin: 20px 0; }
     button { font-size: 1.2rem; padding: 10px 20px; margin: 5px; }
+    #historial { 
+      margin-top: 40px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: left;
+      font-size: 1rem;
+    }
+    #historial div {
+      border-bottom: 1px solid #ccc;
+      padding: 6px 0;
+    }
   </style>
 </head>
 <body>
@@ -18,12 +30,15 @@
   <button onclick="restar()">Restar</button>
   <button onclick="reiniciar()">Reiniciar</button>
 
-  <!-- Firebase SDK versión 8 (la clásica, compatible con tu código) -->
+  <h2>Historial de incrementos</h2>
+  <div id="historial">Cargando historial...</div>
+
+  <!-- Firebase SDK versión 8 (compatible con tu código) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <script>
-    // Configuración real de tu proyecto Firebase
+    // Tus credenciales de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDNdfaSonTnbDtCu1tCpdwTjKSO1UPzIRw",
       authDomain: "contador-39b4b.firebaseapp.com",
@@ -34,26 +49,65 @@
       appId: "1:343957775532:web:698b14fd4ac25ce35c6b09"
     };
 
-    // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
+
     const db = firebase.database();
-    const ref = db.ref("contadorGlobal");
+    const refContador = db.ref("contadorGlobal");
+    const refHistorial = db.ref("historialIncrementos");
 
     let contador = 0;
 
-    // Leer valor inicial y actualizar cada vez que cambie
-    ref.on("value", snap => {
+    // Actualizar contador en pantalla cuando Firebase cambie
+    refContador.on("value", snap => {
       contador = snap.val() || 0;
       document.getElementById("valor").textContent = contador;
     });
 
-    function actualizar() {
-      ref.set(contador);
+    // Mostrar historial
+    refHistorial.on("value", snap => {
+      const data = snap.val();
+      const div = document.getElementById("historial");
+
+      if (!data) {
+        div.innerHTML = "Aún no hay incrementos.";
+        return;
+      }
+
+      // Convertir el objeto en array ordenado por fecha descendente
+      const fechas = Object.keys(data).sort().reverse();
+
+      div.innerHTML = "";
+      fechas.forEach(f => {
+        const fechaLocal = new Date(f).toLocaleString();
+        div.innerHTML += `<div>➕ Incremento en: <strong>${fechaLocal}</strong></div>`;
+      });
+    });
+
+    // Registrar incremento
+    function registrarIncremento() {
+      const fecha = new Date().toISOString();
+      refHistorial.child(fecha).set(true);
     }
 
-    function incrementar() { contador++; actualizar(); }
-    function restar()      { contador--; actualizar(); }
-    function reiniciar()   { contador = 0; actualizar(); }
+    function actualizar() {
+      refContador.set(contador);
+    }
+
+    function incrementar() {
+      contador++;
+      actualizar();
+      registrarIncremento();
+    }
+
+    function restar() {
+      contador--;
+      actualizar();
+    }
+
+    function reiniciar() {
+      contador = 0;
+      actualizar();
+    }
   </script>
 
 </body>
