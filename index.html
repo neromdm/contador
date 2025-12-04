@@ -18,12 +18,12 @@
   <button onclick="restar()">Restar</button>
   <button onclick="reiniciar()">Reiniciar</button>
 
-  <!-- SDK de Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
+  <!-- Firebase SDK versión 8 (la clásica, compatible con tu código) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <script>
-    // Configuración de Firebase — AQUÍ PEGARÁS TUS DATOS
+    // Configuración real de tu proyecto Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDNdfaSonTnbDtCu1tCpdwTjKSO1UPzIRw",
       authDomain: "contador-39b4b.firebaseapp.com",
@@ -34,31 +34,26 @@
       appId: "1:343957775532:web:698b14fd4ac25ce35c6b09"
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const ref = db.ref("contadorGlobal");
 
-    // Cuando Firebase cambie el valor, actualizamos el HTML
-    ref.on("value", (snapshot) => {
-      const valor = snapshot.val();
-      document.getElementById("valor").textContent = valor;
-      contador = valor;
+    let contador = 0;
+
+    // Leer valor inicial y actualizar cada vez que cambie
+    ref.on("value", snap => {
+      contador = snap.val() || 0;
+      document.getElementById("valor").textContent = contador;
     });
 
-	let contador = 0;
+    function actualizar() {
+      ref.set(contador);
+    }
 
-	ref.on("value", snap => {
-		contador = snap.val();
-		document.getElementById("valor").textContent = contador;
-	});
-
-  	function actualizar() {
-    	ref.set(contador);
-  	}
-
-  	function incrementar() { contador++; actualizar(); }
-  	function restar() { contador--; actualizar(); }
-  	function reiniciar() { contador = 0; actualizar(); }
+    function incrementar() { contador++; actualizar(); }
+    function restar()      { contador--; actualizar(); }
+    function reiniciar()   { contador = 0; actualizar(); }
   </script>
 
 </body>
