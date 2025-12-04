@@ -35,80 +35,78 @@
 
   <!-- Firebase SDK versión 8 (compatible con tu código) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-  <script>
-    // Tus credenciales de Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyDNdfaSonTnbDtCu1tCpdwTjKSO1UPzIRw",
-      authDomain: "contador-39b4b.firebaseapp.com",
-      databaseURL: "https://contador-39b4b-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "contador-39b4b",
-      storageBucket: "contador-39b4b.firebasestorage.app",
-      messagingSenderId: "343957775532",
-      appId: "1:343957775532:web:698b14fd4ac25ce35c6b09"
-    };
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDNdfaSonTnbDtCu1tCpdwTjKSO1UPzIRw",
+    authDomain: "contador-39b4b.firebaseapp.com",
+    databaseURL: "https://contador-39b4b-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "contador-39b4b",
+    storageBucket: "contador-39b4b.appspot.com",
+    messagingSenderId: "343957775532",
+    appId: "1:343957775532:web:698b14fd4ac25ce35c6b09"
+  };
 
-    firebase.initializeApp(firebaseConfig);
+  firebase.initializeApp(firebaseConfig);
 
-    const db = firebase.database();
-    const refContador = db.ref("contadorGlobal");
-    const refHistorial = db.ref("historialIncrementos");
+  const db = firebase.database();
+  const refContador = db.ref("contadorGlobal");
+  const refHistorial = db.ref("historialIncrementos");
 
-    let contador = 0;
+  let contador = 0;
 
-    // Actualizar contador en pantalla cuando Firebase cambie
-    refContador.on("value", snap => {
-      contador = snap.val() || 0;
-      document.getElementById("valor").textContent = contador;
+  // Cargar contador en pantalla
+  refContador.on("value", snap => {
+    contador = snap.val() || 0;
+    document.getElementById("valor").textContent = contador;
+  });
+
+  // Mostrar historial
+  refHistorial.on("value", snap => {
+    const data = snap.val();
+    const div = document.getElementById("historial");
+
+    if (!data) {
+      div.innerHTML = "Aún no hay incrementos.";
+      return;
+    }
+
+    const fechas = Object.keys(data).sort().reverse();
+    div.innerHTML = "";
+
+    fechas.forEach(f => {
+      const fechaLocal = new Date(f).toLocaleString();
+      div.innerHTML += `<div>➕ Incremento en: <strong>${fechaLocal}</strong></div>`;
     });
+  });
 
-    // Mostrar historial
-    refHistorial.on("value", snap => {
-      const data = snap.val();
-      const div = document.getElementById("historial");
+  function registrarIncremento() {
+    const fecha = new Date().toISOString();
+    refHistorial.child(fecha).set(true);
+  }
 
-      if (!data) {
-        div.innerHTML = "Aún no hay incrementos.";
-        return;
-      }
+  function actualizar() {
+    refContador.set(contador);
+  }
 
-      // Convertir el objeto en array ordenado por fecha descendente
-      const fechas = Object.keys(data).sort().reverse();
+  function incrementar() {
+    contador++;
+    actualizar();
+    registrarIncremento();
+  }
 
-      div.innerHTML = "";
-      fechas.forEach(f => {
-        const fechaLocal = new Date(f).toLocaleString();
-        div.innerHTML += `<div>➕ Incremento en: <strong>${fechaLocal}</strong></div>`;
-      });
-    });
+  function restar() {
+    contador--;
+    actualizar();
+  }
 
-    // Registrar incremento
-    function registrarIncremento() {
-      const fecha = new Date().toISOString();
-      refHistorial.child(fecha).set(true);
-    }
+  function reiniciar() {
+    contador = 0;
+    actualizar();
+  }
+</script>
 
-    function actualizar() {
-      refContador.set(contador);
-    }
-
-    function incrementar() {
-      contador++;
-      actualizar();
-      registrarIncremento();
-    }
-
-    function restar() {
-      contador--;
-      actualizar();
-    }
-
-    function reiniciar() {
-      contador = 0;
-      actualizar();
-    }
-  </script>
 
 </body>
 </html>
