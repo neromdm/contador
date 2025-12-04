@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Contador Persistente</title>
+  <meta charset="UTF-8" />
+  <title>Contador global</title>
   <style>
     body { font-family: sans-serif; text-align: center; margin-top: 50px; }
     #valor { font-size: 3rem; margin: 20px 0; }
@@ -11,41 +11,55 @@
 </head>
 <body>
 
-  <h1>Contador Persistente</h1>
+  <h1>Contador Global</h1>
   <div id="valor">0</div>
 
   <button onclick="incrementar()">Sumar</button>
   <button onclick="restar()">Restar</button>
   <button onclick="reiniciar()">Reiniciar</button>
 
+  <!-- SDK de Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
+
   <script>
-    // Cargar valor guardado o iniciar en 0
-    let contador = Number(localStorage.getItem("contador")) || 0;
+    // Configuración de Firebase — AQUÍ PEGARÁS TUS DATOS
+    const firebaseConfig = {
+      apiKey: "AIzaSyDNdfaSonTnbDtCu1tCpdwTjKSO1UPzIRw",
+      authDomain: "contador-39b4b.firebaseapp.com",
+      databaseURL: "https://contador-39b4b-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "contador-39b4b",
+      storageBucket: "contador-39b4b.firebasestorage.app",
+      messagingSenderId: "343957775532",
+      appId: "1:343957775532:web:698b14fd4ac25ce35c6b09"
+    };
 
-    function actualizar() {
-      document.getElementById("valor").textContent = contador;
-      localStorage.setItem("contador", contador);  // Guardar cada cambio
-    }
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const ref = db.ref("contadorGlobal");
 
-    function incrementar() {
-      contador++;
-      actualizar();
-    }
+    // Cuando Firebase cambie el valor, actualizamos el HTML
+    ref.on("value", (snapshot) => {
+      const valor = snapshot.val();
+      document.getElementById("valor").textContent = valor;
+      contador = valor;
+    });
 
-    function restar() {
-      contador--;
-      actualizar();
-    }
+	let contador = 0;
 
-    function reiniciar() {
-      contador = 0;
-      actualizar();
-    }
+	ref.on("value", snap => {
+		contador = snap.val();
+		document.getElementById("valor").textContent = contador;
+	});
 
-    // Mostrar valor al cargar la página
-    actualizar();
+  	function actualizar() {
+    	ref.set(contador);
+  	}
+
+  	function incrementar() { contador++; actualizar(); }
+  	function restar() { contador--; actualizar(); }
+  	function reiniciar() { contador = 0; actualizar(); }
   </script>
 
 </body>
 </html>
-
